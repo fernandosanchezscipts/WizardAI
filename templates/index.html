@@ -8,37 +8,71 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
   <script defer src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script defer src="/static/script.js"></script>
+  <style>
+    .dot-typing {
+      display: flex;
+      gap: 5px;
+      padding: 6px 10px;
+      background-color: #334155;
+      border-radius: 16px;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+    }
+
+    .dot-typing span {
+      width: 5px;
+      height: 5px;
+      background-color: #f1f5f9;
+      border-radius: 50%;
+      animation: dotPulse 1.2s infinite ease-in-out;
+    }
+
+    .dot-typing span:nth-child(2) { animation-delay: 0.2s; }
+    .dot-typing span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes dotPulse {
+      0%, 80%, 100% {
+        transform: scale(1);
+        opacity: 0.5;
+      }
+      40% {
+        transform: scale(1.4);
+        opacity: 1;
+      }
+    }
+  </style>
 </head>
 <body>
+  <!-- Theme toggle -->
   <button id="theme-toggle">Toggle Theme</button>
 
+  <!-- Chat container -->
   <div class="chat-box">
     <div class="chat-box-header">
       <h3>WizardAI</h3>
-      <p><i class="fa fa-times"></i></p>
     </div>
 
     <div class="chat-box-body" id="chatbox">
-      <!-- Chat messages will be added here -->
+      <!-- Chat messages injected here -->
     </div>
 
     <div class="chat-box-footer">
       <button id="addExtra"><i class="fa fa-plus"></i></button>
       <input id="user-input" type="text" name="message" placeholder="Enter your message..." />
-      <input type="file" id="image-upload" name="image" style="display:none;">
+      <input type="file" id="image-upload" name="image" accept="image/*" style="display:none;">
       <input type="file" id="pdf-upload" name="pdf" accept="application/pdf" style="display:none;">
       <i id="send-btn" class="fas fa-paper-plane send"></i>
     </div>
   </div>
 
-  <div class="chat-button"><span></span></div>
-
+  <!-- Upload Modal -->
   <div class="modal">
     <div class="modal-content">
-      <span class="modal-close-button">&times;</span>
+      <button class="modal-close-button">&times;</button>
       <h1>Upload Options</h1>
-      <button onclick="document.getElementById('image-upload').click();">Upload Image</button>
-      <button onclick="document.getElementById('pdf-upload').click();">Upload PDF</button>
+      <button id="trigger-image">Upload Image</button>
+      <button id="trigger-pdf">Upload PDF</button>
     </div>
   </div>
 </body>

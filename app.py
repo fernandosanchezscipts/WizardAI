@@ -7,13 +7,15 @@ import openai
 import os
 import base64
 import re
+import traceback
+import fitz  # <-- PDF reader
 
 print("Imports complete")
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from .env
+load_dotenv(dotenv_path=".env")
 openai.api_key = os.getenv("OPENAI_API_KEY")
-print("API KEY LOADED")
+print("USING API KEY:", openai.api_key[:8] + "..." if openai.api_key else "None")
 
 app = Flask(__name__)
 
@@ -54,10 +56,21 @@ def chat():
         })
 
     elif pdf:
-        session["conversation"].append({
-            "role": "user",
-            "content": message or f"A PDF was uploaded: {pdf.filename} (cannot read content directly)."
-        })
+        try:
+            doc = fitz.open(stream=pdf.read(), filetype="pdf")
+            pdf_text = ""
+            for page in doc:
+                pdf_text += page.get_text()
+            doc.close()
+            session["conversation"].append({
+                "role": "user",
+                "content": message or f"Here is the text from the uploaded PDF:\n\n{pdf_text[:2000]}"
+            })
+        except Exception as e:
+            session["conversation"].append({
+                "role": "user",
+                "content": f"PDF could not be read. Error: {str(e)}"
+            })
 
     try:
         response = openai.chat.completions.create(
@@ -68,7 +81,7 @@ def chat():
 
         reply = response.choices[0].message.content
 
-        # Strip markdown: bold, italic, code, etc.
+        # Strip markdown
         reply = re.sub(r"\*\*(.*?)\*\*", r"\1", reply)
         reply = re.sub(r"\*(.*?)\*", r"\1", reply)
         reply = re.sub(r"_(.*?)_", r"\1", reply)
@@ -78,14 +91,12 @@ def chat():
         return jsonify({"reply": reply})
 
     except Exception as e:
-        print("GPT Error:", e)
-        return jsonify({"reply": "GPT-4o failed. Try again later."})
-
+        print("GPT Error:")
+        traceback.print_exc()
+        return jsonify({"reply": f"GPT-4o failed. Error: {str(e)}"})
 
 if __name__ == "__main__":
     print("Flask running at http://0.0.0.0:10000")
     app.run(host="0.0.0.0", port=10000, debug=True)
     
-
-
 
